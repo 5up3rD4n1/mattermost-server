@@ -923,6 +923,7 @@ type allChannelMemberNotifyProps struct {
 }
 
 func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) store.StoreChannel {
+	// NOTE: retrieve data
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {

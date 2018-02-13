@@ -196,6 +196,12 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 		user.Locale = *a.Config().LocalizationSettings.DefaultClientLocale
 	}
 
+	if principal, err := a.ValidatePrincipal(user); err != nil {
+		return nil, err
+	} else {
+		user.MessagingApiId = principal.Id
+	}
+
 	if ruser, err := a.createUser(user); err != nil {
 		return nil, err
 	} else {

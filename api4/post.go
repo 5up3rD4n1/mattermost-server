@@ -62,6 +62,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Validate if user is in available time range
 	c.App.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
 	c.App.UpdateLastActivityAtIfNeeded(c.Session)
 

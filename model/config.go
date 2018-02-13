@@ -1570,6 +1570,12 @@ type PluginSettings struct {
 	PluginStates    map[string]*PluginState
 }
 
+type MessagingApiSettings struct {
+	ConnectionUrl	string
+	Username		*string
+	Password		*string
+}
+
 func (s *PluginSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = NewBool(true)
@@ -1670,6 +1676,7 @@ type Config struct {
 	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
+	MessagingApiSettings  MessagingApiSettings
 }
 
 func (o *Config) Clone() *Config {

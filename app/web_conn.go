@@ -45,6 +45,9 @@ type WebConn struct {
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
+
+	l4g.Debug("New web socket connection")
+
 	if len(session.UserId) > 0 {
 		a.Go(func() {
 			a.SetStatusOnline(session.UserId, session.Id, false)

@@ -27,6 +27,7 @@ const (
 	PUSH_NOTIFY_PROP             = "push"
 	PUSH_STATUS_NOTIFY_PROP      = "push_status"
 	EMAIL_NOTIFY_PROP            = "email"
+	SCHEDULE_NOTIFY_PROP		 = "schedule"
 	CHANNEL_MENTIONS_NOTIFY_PROP = "channel"
 	COMMENTS_NOTIFY_PROP         = "comments"
 	MENTION_KEYS_NOTIFY_PROP     = "mention_keys"
@@ -73,6 +74,7 @@ type User struct {
 	Locale             string    `json:"locale"`
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
+	MessagingApiId     int64     `json:"messaging_api_id,omitempty"`
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
@@ -150,6 +152,10 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("password_limit", u.Id)
 	}
 
+	if u.MessagingApiId <= 0  {
+		return InvalidUserError("not_messaging_api_id", u.Id)
+	}
+
 	return nil
 }
 
@@ -201,7 +207,7 @@ func (u *User) PreSave() {
 	}
 
 	if len(u.Password) > 0 {
-		u.Password = HashPassword(u.Password)
+u.Password = HashPassword(u.Password)
 	}
 }
 

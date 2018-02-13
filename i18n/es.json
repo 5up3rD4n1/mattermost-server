@@ -7345,5 +7345,9 @@
   {
     "id": "wsapi.webrtc.init.debug",
     "translation": "Inicializando rutas de webrtc en el API de WebSocket"
+  },
+  {
+    "id": "messaging.api.parse_error",
+    "translation": "Ha ocurrido un error al tratar de convertir los datos del api"
   }
 ]

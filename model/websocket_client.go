@@ -4,6 +4,7 @@
 package model
 
 import (
+	l4g "github.com/alecthomas/log4go"
 	"encoding/json"
 	"net/http"
 
@@ -131,6 +132,8 @@ func (wsc *WebSocketClient) Listen() {
 }
 
 func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface{}) {
+	l4g.Debug(action)
+
 	req := &WebSocketRequest{}
 	req.Seq = wsc.Sequence
 	req.Action = action
@@ -144,6 +147,7 @@ func (wsc *WebSocketClient) SendMessage(action string, data map[string]interface
 // UserTyping will push a user_typing event out to all connected users
 // who are in the specified channel
 func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
+	l4g.Debug(channelId)
 	data := map[string]interface{}{
 		"channel_id": channelId,
 		"parent_id":  parentId,
@@ -154,6 +158,7 @@ func (wsc *WebSocketClient) UserTyping(channelId, parentId string) {
 
 // GetStatuses will return a map of string statuses using user id as the key
 func (wsc *WebSocketClient) GetStatuses() {
+	l4g.Debug("Websocket: get statuses")
 	wsc.SendMessage("get_statuses", nil)
 }
 
