@@ -161,6 +161,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
+	// TODO: Check if receiver is available, else mark it as pending
+
 	var rpost *model.Post
 	if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
@@ -431,16 +433,16 @@ func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	})
 }
 
-func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
-	if result := <-a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true); result.Err != nil {
+func (a *App) GetPostsPage(channelId string, userId string, page int, perPage int) (*model.PostList, *model.AppError) {
+	if result := <-a.Srv.Store.Post().GetPosts(channelId, userId, page*perPage, perPage, true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.PostList), nil
 	}
 }
 
-func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	if result := <-a.Srv.Store.Post().GetPosts(channelId, offset, limit, true); result.Err != nil {
+func (a *App) GetPosts(channelId string, userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	if result := <-a.Srv.Store.Post().GetPosts(channelId, userId, offset, limit, true); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.PostList), nil

@@ -156,6 +156,9 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 		a.Jobs.StartSchedulers()
 	}
 
+	// Start ESIS Messages delivery jobs
+	a.EsisJobs.Start()
+
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
 	c := make(chan os.Signal, 1)
@@ -169,6 +172,8 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 	if a.Metrics != nil {
 		a.Metrics.StopServer()
 	}
+
+	a.EsisJobs.Stop()
 
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -70,6 +71,10 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		table.ColMap("Locale").SetMaxSize(5)
 		table.ColMap("MfaSecret").SetMaxSize(128)
 		table.ColMap("Position").SetMaxSize(128)
+		table.ColMap("MessagingApiId").SetMaxSize(32).SetUnique(true)
+		table.ColMap("ReceiptWindowStart").SetMaxSize(50)
+		table.ColMap("ReceiptWindowEnd").SetMaxSize(50)
+		table.ColMap("Position").SetMaxSize(128)
 	}
 
 	return us
@@ -87,6 +92,9 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
 		us.CreateIndexIfNotExists("idx_users_firstname_lower", "Users", "lower(FirstName)")
 		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
+		us.CreateIndexIfNotExists("idx_users_esis_api_id", "Users", "MessagingApiId")
+		us.CreateIndexIfNotExists("idx_users_esis_window_start_lower", "Users", "lower(ReceiptWindowStart)")
+		us.CreateIndexIfNotExists("idx_users_esis_window_end_lower", "Users", "lower(ReceiptWindowEnd)")
 	}
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
@@ -310,9 +318,22 @@ func (us SqlUserStore) Get(id string) store.StoreChannel {
 }
 
 func (us SqlUserStore) GetAll() store.StoreChannel {
+	return getByQuery(&us,"SELECT * FROM Users")
+}
+
+func (us SqlUserStore) GetEsisApiAvailable(now time.Time) store.StoreChannel {
+	ftime := now.UTC().Format("15:04")
+	query := fmt.Sprintf("SELECT * FROM Users " +
+		"WHERE TO_TIMESTAMP('%s', 'HH24:MI') " +
+		"BETWEEN TO_TIMESTAMP(ReceiptWindowStart, 'HH24:MI') " +
+		"AND TO_TIMESTAMP(ReceiptWindowEnd, 'HH24:MI')", ftime )
+	return getByQuery(&us, query)
+}
+
+func getByQuery(us *SqlUserStore, query string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.User
-		if _, err := us.GetReplica().Select(&data, "SELECT * FROM Users"); err != nil {
+		if _, err := us.GetReplica().Select(&data, query); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAll", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 

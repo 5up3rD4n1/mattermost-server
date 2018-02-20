@@ -20,10 +20,11 @@ type Group struct {
 }
 
 type User struct {
-	Principal int64 `json:"principal"`
-	UserName  string
-	Password  string
-	FullName  string
+	Id		  			int64 	`json:"id"`
+	UserName  			string 	`json:"userName"`
+	Password  			string	`json:"password"`
+	FullName  			string	`json:"fullName"`
+	Principal 			int64 	`json:"principal"`
+	ReceiptWindowStart 	string 	`json:"receiptWindowStart"`
+	ReceiptWindowEnd 	string 	`json:"receiptWindowEnd"`
 }
-
-

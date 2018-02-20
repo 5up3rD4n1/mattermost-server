@@ -44,6 +44,7 @@ type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
 	Post() PostStore
+	PendingPost() PendingPostStore
 	User() UserStore
 	Audit() AuditStore
 	ClusterDiscovery() ClusterDiscoveryStore
@@ -176,7 +177,7 @@ type PostStore interface {
 	Delete(postId string, time int64) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	PermanentDeleteByChannel(channelId string) StoreChannel
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
+	GetPosts(channelId string, userId string, offset int, limit int, allowFromCache bool) StoreChannel
 	GetFlaggedPosts(userId string, offset int, limit int) StoreChannel
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) StoreChannel
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel
@@ -208,6 +209,7 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
+	GetEsisApiAvailable(now time.Time) StoreChannel
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
 	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
@@ -460,4 +462,8 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+}
+
+type PendingPostStore interface {
+	Save(pendingPost *model.PendingPost) StoreChannel
 }

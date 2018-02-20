@@ -199,9 +199,13 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	if principal, err := a.ValidatePrincipal(user); err != nil {
 		return nil, err
 	} else {
+		esisUser := principal.AsUser
+		user.ReceiptWindowStart = esisUser.ReceiptWindowStart
+		user.ReceiptWindowEnd = esisUser.ReceiptWindowEnd
 		user.MessagingApiId = principal.Id
 	}
 
+	// return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	if ruser, err := a.createUser(user); err != nil {
 		return nil, err
 	} else {

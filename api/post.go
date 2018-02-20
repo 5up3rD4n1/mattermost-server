@@ -216,7 +216,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if list, err := c.App.GetPosts(id, offset, limit); err != nil {
+	if list, err := c.App.GetPosts(id, c.Session.UserId, offset, limit); err != nil {
 		c.Err = err
 		return
 	} else {

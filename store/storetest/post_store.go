@@ -540,7 +540,7 @@ func testPostStoreGetPostsWtihDetails(t *testing.T, ss store.Store) {
 	o5.RootId = o4.Id
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, false)).Data.(*model.PostList)
+	r1 := (<-ss.Post().GetPosts(o1.ChannelId, "",0, 4, false)).Data.(*model.PostList)
 
 	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -566,7 +566,7 @@ func testPostStoreGetPostsWtihDetails(t *testing.T, ss store.Store) {
 		t.Fatal("Missing parent")
 	}
 
-	r2 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, true)).Data.(*model.PostList)
+	r2 := (<-ss.Post().GetPosts(o1.ChannelId, "", 0, 4, true)).Data.(*model.PostList)
 
 	if r2.Order[0] != o5.Id {
 		t.Fatal("invalid order")

@@ -65,6 +65,7 @@ type SqlSupplierOldStores struct {
 	team                 store.TeamStore
 	channel              store.ChannelStore
 	post                 store.PostStore
+	pendingPost			 store.PendingPostStore
 	user                 store.UserStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
@@ -113,6 +114,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.team = NewSqlTeamStore(supplier)
 	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
+	supplier.oldStores.pendingPost = NewSqlPendingPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
 	supplier.oldStores.audit = NewSqlAuditStore(supplier)
 	supplier.oldStores.cluster = NewSqlClusterDiscoveryStore(supplier)
@@ -148,6 +150,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
 	supplier.oldStores.post.(*SqlPostStore).CreateIndexesIfNotExists()
+	supplier.oldStores.pendingPost.(*SqlPendingPostStore).CreateIndexesIfNotExists()
 	supplier.oldStores.user.(*SqlUserStore).CreateIndexesIfNotExists()
 	supplier.oldStores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
 	supplier.oldStores.compliance.(*SqlComplianceStore).CreateIndexesIfNotExists()
@@ -725,6 +728,10 @@ func (ss *SqlSupplier) Channel() store.ChannelStore {
 
 func (ss *SqlSupplier) Post() store.PostStore {
 	return ss.oldStores.post
+}
+
+func (ss *SqlSupplier) PendingPost() store.PendingPostStore {
+	return ss.oldStores.pendingPost
 }
 
 func (ss *SqlSupplier) User() store.UserStore {

@@ -77,6 +77,11 @@ func (s *LayeredStore) Post() PostStore {
 	return s.DatabaseLayer.Post()
 }
 
+func (s *LayeredStore) PendingPost() PendingPostStore {
+	return s.DatabaseLayer.PendingPost()
+}
+
+
 func (s *LayeredStore) User() UserStore {
 	return s.DatabaseLayer.User()
 }

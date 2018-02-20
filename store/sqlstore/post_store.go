@@ -432,7 +432,8 @@ func (s SqlPostStore) PermanentDeleteByChannel(channelId string) store.StoreChan
 	})
 }
 
-func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
+func (s SqlPostStore) GetPosts(channelId string, userId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
+	l4g.Debug("User id for get posts: " + userId)
 	return store.Do(func(result *store.StoreResult) {
 		if limit > 1000 {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
@@ -458,7 +459,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 			}
 		}
 
-		rpc := s.getRootPosts(channelId, offset, limit)
+		rpc := s.getRootPosts(channelId, userId, offset, limit)
 		cpc := s.getParentsPosts(channelId, offset, limit)
 
 		if rpr := <-rpc; rpr.Err != nil {
@@ -657,10 +658,23 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 	})
 }
 
-func (s SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
+func (s SqlPostStore) getRootPosts(channelId string, userId string, offset int, limit int) store.StoreChannel {
+	l4g.Debug("User id to get posts: " + userId)
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
+		_, err := s.GetReplica().Select(&posts, "" +
+			`SELECT * 
+			FROM Posts 
+			WHERE ChannelId = :ChannelId
+			AND Id NOT IN (
+				SELECT PostId
+				FROM PendingPosts pp
+				WHERE pp.ChannelId = :ChannelId
+				AND pp.UserId = :UserId
+				AND DeleteAt = 0
+			)
+			AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset`,
+				map[string]interface{}{"ChannelId": channelId, "UserId": userId,"Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_root_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 		} else {

@@ -11,8 +11,9 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
-
 	"golang.org/x/crypto/bcrypt"
+	"time"
+	"strconv"
 )
 
 const (
@@ -27,7 +28,7 @@ const (
 	PUSH_NOTIFY_PROP             = "push"
 	PUSH_STATUS_NOTIFY_PROP      = "push_status"
 	EMAIL_NOTIFY_PROP            = "email"
-	SCHEDULE_NOTIFY_PROP		 = "schedule"
+	SCHEDULE_NOTIFY_PROP         = "schedule"
 	CHANNEL_MENTIONS_NOTIFY_PROP = "channel"
 	COMMENTS_NOTIFY_PROP         = "comments"
 	MENTION_KEYS_NOTIFY_PROP     = "mention_keys"
@@ -75,6 +76,8 @@ type User struct {
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
 	MessagingApiId     int64     `json:"messaging_api_id,omitempty"`
+	ReceiptWindowStart string    `json:"receipt_window_start,omitempty"`
+	ReceiptWindowEnd   string    `json:"receipt_window_end,omitempty"`
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
@@ -152,7 +155,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("password_limit", u.Id)
 	}
 
-	if u.MessagingApiId <= 0  {
+	if u.MessagingApiId <= 0 {
 		return InvalidUserError("not_messaging_api_id", u.Id)
 	}
 
@@ -207,7 +210,7 @@ func (u *User) PreSave() {
 	}
 
 	if len(u.Password) > 0 {
-u.Password = HashPassword(u.Password)
+		u.Password = HashPassword(u.Password)
 	}
 }
 
@@ -490,6 +493,28 @@ func (u *User) IsLDAPUser() bool {
 
 func (u *User) IsSAMLUser() bool {
 	return u.AuthService == USER_AUTH_SERVICE_SAML
+}
+
+func (u *User) IsAvailable() bool {
+
+	now := time.Now()
+
+	if u.ReceiptWindowStart != "" && u.ReceiptWindowEnd != "" {
+		startTime 	:= timeFromWindowString(u.ReceiptWindowStart, now)
+		endTime 	:= timeFromWindowString(u.ReceiptWindowEnd, now)
+
+		return now.After(startTime) && now.Before(endTime)
+
+	}
+
+	return true
+}
+
+func timeFromWindowString(stime string, now time.Time) time.Time {
+	timeArr := strings.Split(stime, ":")
+	intHour, _ := strconv.ParseInt(timeArr[0], 10, 32)
+	intMin, _ := strconv.ParseInt(timeArr[1], 10, 32)
+	return time.Date(now.Year(), now.Month(), now.Day(), int(intHour), int(intMin), now.Second(), now.Nanosecond(), time.UTC)
 }
 
 // UserFromJson will decode the input and return a User

@@ -269,37 +269,53 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
-	message.Add("channel_type", channel.Type)
-	message.Add("channel_display_name", channelName)
-	message.Add("channel_name", channel.Name)
-	message.Add("sender_name", senderUsername)
-	message.Add("team_id", team.Id)
+	for uid, u := range profileMap {
+		if u.IsAvailable() {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, uid, nil)
+			message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+			message.Add("channel_type", channel.Type)
+			message.Add("channel_display_name", channelName)
+			message.Add("channel_name", channel.Name)
+			message.Add("sender_name", senderUsername)
+			message.Add("team_id", team.Id)
 
-	if len(post.FileIds) != 0 && fchan != nil {
-		message.Add("otherFile", "true")
+			if len(post.FileIds) != 0 && fchan != nil {
+				message.Add("otherFile", "true")
 
-		var infos []*model.FileInfo
-		if result := <-fchan; result.Err != nil {
-			l4g.Warn(utils.T("api.post.send_notifications.files.error"), post.Id, result.Err)
+				var infos []*model.FileInfo
+				if result := <-fchan; result.Err != nil {
+					l4g.Warn(utils.T("api.post.send_notifications.files.error"), post.Id, result.Err)
+				} else {
+					infos = result.Data.([]*model.FileInfo)
+				}
+
+				for _, info := range infos {
+					if info.IsImage() {
+						message.Add("image", "true")
+						break
+					}
+				}
+			}
+
+			if len(mentionedUsersList) != 0 {
+				message.Add("mentions", model.ArrayToJson(mentionedUsersList))
+			}
+
+			a.Publish(message)
 		} else {
-			infos = result.Data.([]*model.FileInfo)
-		}
-
-		for _, info := range infos {
-			if info.IsImage() {
-				message.Add("image", "true")
-				break
+			if !post.IsSystemMessage() && post.UserId != uid {
+				pendingPost := &model.PendingPost{
+					UserId: uid,
+					ChannelId: channel.Id,
+					PostId: post.Id,
+				}
+				if result := <- a.Srv.Store.PendingPost().Save(pendingPost); result.Err != nil {
+					l4g.Warn(utils.T("api.pending_post.create.error"), pendingPost.Id, result.Err)
+				}
 			}
 		}
 	}
 
-	if len(mentionedUsersList) != 0 {
-		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
-	}
-
-	a.Publish(message)
 	return mentionedUsersList, nil
 }
 

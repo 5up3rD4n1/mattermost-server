@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -80,6 +80,8 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	beforePost := r.URL.Query().Get("before")
 	sinceString := r.URL.Query().Get("since")
 
+	l4g.Debug(afterPost, beforePost, sinceString)
+
 	var since int64
 	var parseError error
 
@@ -125,7 +127,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		list, err = c.App.GetPostsPage(c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
+		list, err = c.App.GetPostsPage(c.Params.ChannelId, c.Session.UserId, c.Params.Page, c.Params.PerPage)
 	}
 
 	if err != nil {

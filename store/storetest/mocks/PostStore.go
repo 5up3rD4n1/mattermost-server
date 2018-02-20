@@ -174,12 +174,12 @@ func (_m *PostStore) GetOldest() store.StoreChannel {
 }
 
 // GetPosts provides a mock function with given fields: channelId, offset, limit, allowFromCache
-func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
-	ret := _m.Called(channelId, offset, limit, allowFromCache)
+func (_m *PostStore) GetPosts(channelId string, userId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
+	ret := _m.Called(channelId, userId, offset, limit, allowFromCache)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int, bool) store.StoreChannel); ok {
-		r0 = rf(channelId, offset, limit, allowFromCache)
+	if rf, ok := ret.Get(0).(func(string, string, int, int, bool) store.StoreChannel); ok {
+		r0 = rf(channelId, userId, offset, limit, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
