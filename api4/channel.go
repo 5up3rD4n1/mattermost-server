@@ -735,7 +735,7 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_CHANNEL_ROLES) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_FCHANNEL_ROLES) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_CHANNEL_ROLES)
 		return
 	}

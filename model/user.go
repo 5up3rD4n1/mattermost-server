@@ -497,14 +497,12 @@ func (u *User) IsSAMLUser() bool {
 
 func (u *User) IsAvailable() bool {
 
-	now := time.Now()
+	now := time.Now().UTC()
 
 	if u.ReceiptWindowStart != "" && u.ReceiptWindowEnd != "" {
 		startTime 	:= timeFromWindowString(u.ReceiptWindowStart, now)
 		endTime 	:= timeFromWindowString(u.ReceiptWindowEnd, now)
-
 		return now.After(startTime) && now.Before(endTime)
-
 	}
 
 	return true

@@ -35,7 +35,7 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 	var err *model.AppError
 	if user, err = a.GetUser(userId); err != nil {
 		return nil, err
-	} else {
+	} else if team.Email == "" {
 		team.Email = user.Email
 	}
 
@@ -48,9 +48,9 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 		return nil, err
 	}
 
-	if err = a.JoinUserToTeam(rteam, user, ""); err != nil {
-		return nil, err
-	}
+	//if err = a.JoinUserToTeam(rteam, user, ""); err != nil {
+	//	return nil, err
+	//}
 
 	return rteam, nil
 }

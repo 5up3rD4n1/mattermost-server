@@ -36,6 +36,7 @@ func NewSqlPendingPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterf
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("PostId").SetMaxSize(26)
 		table.ColMap("ChannelId").SetMaxSize(26)
+		table.ColMap("Props").SetMaxSize(2000)
 	}
 
 	return s
@@ -56,7 +57,7 @@ func (s SqlPendingPostStore) CreateIndexesIfNotExists() {
 func (s SqlPendingPostStore) Save(pendingPost *model.PendingPost) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if len(pendingPost.Id) > 0 {
-			result.Err = model.NewAppError("SqlPendingPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+pendingPost.Id, http.StatusBadRequest)
+			result.Err = model.NewAppError("SqlPendingPostStore.Save", "store.sql_pending_post.save.existing.app_error", nil, "id="+pendingPost.Id, http.StatusBadRequest)
 			return
 		}
 
@@ -69,6 +70,49 @@ func (s SqlPendingPostStore) Save(pendingPost *model.PendingPost) store.StoreCha
 			result.Err = model.NewAppError("SqlPendingPostStore.Save", "store.sql_pending_post.save.app_error", nil, "id="+pendingPost.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = pendingPost
+		}
+	})
+}
+
+func (s SqlPendingPostStore) PendingPostsForUser(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+
+		var pendingPosts []*model.PendingPost
+		if _, err := s.GetMaster().Select(&pendingPosts,
+			`SELECT 
+				*
+			FROM 
+				PendingPosts
+			WHERE 
+				UserId = :UserId
+			AND 
+				DeleteAt = 0
+			ORDER BY CreateAt DESC`,
+			map[string]interface{}{"UserId": userId}); err != nil {
+			result.Err = model.NewAppError("SqlPendingPostStore.PendingPostForUser",
+				"store.sql_pending_post.pending_posts_for_user.app_error", nil, err.Error(),
+				http.StatusInternalServerError)
+		} else {
+			result.Data = pendingPosts
+		}
+	})
+}
+
+func (s SqlPendingPostStore) Delete(pendingPost *model.PendingPost) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		pendingPost.SoftDelete()
+
+		_, err := s.GetMaster().Exec(
+			`UPDATE 
+				PendingPosts
+			SET
+				DeleteAt = :DeleteAt, UpdateAt = :UpdateAt
+			WHERE 
+				Id = :Id`,
+			map[string]interface{}{"Id": pendingPost.Id, "DeleteAt": pendingPost.DeleteAt, "UpdateAt": pendingPost.UpdateAt})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlPendingPostStore.Delete", "store.sql_pending_post.delete.app_error", nil, "id="+pendingPost.Id+", err="+err.Error(), http.StatusInternalServerError)
 		}
 	})
 }

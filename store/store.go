@@ -466,4 +466,6 @@ type PluginStore interface {
 
 type PendingPostStore interface {
 	Save(pendingPost *model.PendingPost) StoreChannel
+	PendingPostsForUser(userId string) StoreChannel
+	Delete(pendingPost *model.PendingPost) StoreChannel
 }

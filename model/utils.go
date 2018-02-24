@@ -36,6 +36,14 @@ type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
 
+func (s StringMap) String() string {
+	var result string
+	for key, value := range s {
+		result += key + ":" + value + " "
+	}
+	return result
+}
+
 var translateFunc goi18n.TranslateFunc = nil
 
 func AppErrorInit(t goi18n.TranslateFunc) {

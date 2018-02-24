@@ -161,8 +161,6 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
-	// TODO: Check if receiver is available, else mark it as pending
-
 	var rpost *model.Post
 	if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err

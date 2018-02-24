@@ -96,8 +96,8 @@ func (api *ApiClient) MakeRequest(method, url string, params string) (*http.Resp
 	req, _ := http.NewRequest(method, requestURL, strings.NewReader(params))
 
 	req.Header.Set("Content-Type", "application/json")
-	//req.Header.Set("Accept", "application/json")
-	//req.Header.Set("Authorization", "Basic " + api.Store.Token )
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Authorization", "Basic " + api.Store.Token )
 
 	resp, err := api.Store.Client.Do(req)
 
@@ -110,7 +110,7 @@ func (api *ApiClient) MakeRequest(method, url string, params string) (*http.Resp
 
 // This is required to re-use the underlying connection and not take up file descriptors
 func consumeAndClose(r *http.Response) {
-	if r.Body != nil {
+	if r != nil && r.Body != nil {
 		io.Copy(ioutil.Discard, r.Body)
 		r.Body.Close()
 	}

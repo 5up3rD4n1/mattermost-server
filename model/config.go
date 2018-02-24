@@ -944,6 +944,8 @@ type TeamSettings struct {
 	MaxUsersPerTeam                     *int
 	EnableTeamCreation                  bool
 	EnableUserCreation                  bool
+	TownSquareChannel					*bool
+	OffTopicChannel						*bool
 	EnableOpenServer                    *bool
 	RestrictCreationToDomains           string
 	EnableCustomBrand                   *bool

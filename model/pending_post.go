@@ -7,13 +7,14 @@ import (
 )
 
 type PendingPost struct {
-	Id       	string  `json:"id"`
-	PostId		string  `json:"post_id"`
-	UserId 		string 	`json:"user_id"`
-	ChannelId 	string 	`json:"channel_id"`
-	CreateAt 	int64   `json:"create_at"`
-	UpdateAt 	int64   `json:"update_at"`
-	DeleteAt 	int64   `json:"delete_at"`
+	Id       	string    `json:"id"`
+	PostId		string    `json:"post_id"`
+	UserId 		string 	  `json:"user_id"`
+	ChannelId 	string 	  `json:"channel_id"`
+	Props  		StringMap `json:"props"`
+	CreateAt 	int64     `json:"create_at"`
+	UpdateAt 	int64     `json:"update_at"`
+	DeleteAt 	int64     `json:"delete_at"`
 }
 
 func (o *PendingPost) PreSave() {
@@ -37,6 +38,10 @@ func (o *PendingPost) ToJson() string {
 	}
 }
 
+func (o *PendingPost) String() string {
+	return "PendingPost: " + o.PostId + "for User: " + o.UserId + "with Props: " + o.Props.String()
+}
+
 func PendingPostFromJson(data io.Reader) *PendingPost {
 	decoder := json.NewDecoder(data)
 	var o PendingPost
@@ -54,4 +59,11 @@ func (o *PendingPost) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+
+func (o *PendingPost) SoftDelete() {
+	currentTime := GetMillis()
+	o.UpdateAt = currentTime
+	o.DeleteAt = currentTime
 }

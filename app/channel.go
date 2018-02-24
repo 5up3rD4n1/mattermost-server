@@ -16,19 +16,28 @@ import (
 )
 
 func (a *App) CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {
-	townSquare := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.town_square"), Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: teamId}
 
-	if _, err := a.CreateChannel(townSquare, false); err != nil {
-		return nil, err
+	channels := make([]*model.Channel, 0, 2)
+
+	if *a.Config().TeamSettings.TownSquareChannel {
+		townSquare := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.town_square"), Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: teamId}
+		if _, err := a.CreateChannel(townSquare, false); err != nil {
+			return nil, err
+		}
+
+		channels = append(channels, townSquare)
 	}
 
-	offTopic := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.off_topic"), Name: "off-topic", Type: model.CHANNEL_OPEN, TeamId: teamId}
+	if *a.Config().TeamSettings.OffTopicChannel {
+		offTopic := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.off_topic"), Name: "off-topic", Type: model.CHANNEL_OPEN, TeamId: teamId}
 
-	if _, err := a.CreateChannel(offTopic, false); err != nil {
-		return nil, err
+		if _, err := a.CreateChannel(offTopic, false); err != nil {
+			return nil, err
+		}
+
+		channels = append(channels, offTopic)
 	}
 
-	channels := []*model.Channel{townSquare, offTopic}
 	return channels, nil
 }
 
@@ -136,7 +145,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 
 	channel.CreatorId = userId
 
-	rchannel, err := a.CreateChannel(channel, true)
+	rchannel, err := a.CreateChannel(channel, false)
 	if err != nil {
 		return nil, err
 	}

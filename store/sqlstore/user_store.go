@@ -326,7 +326,7 @@ func (us SqlUserStore) GetEsisApiAvailable(now time.Time) store.StoreChannel {
 	query := fmt.Sprintf("SELECT * FROM Users " +
 		"WHERE TO_TIMESTAMP('%s', 'HH24:MI') " +
 		"BETWEEN TO_TIMESTAMP(ReceiptWindowStart, 'HH24:MI') " +
-		"AND TO_TIMESTAMP(ReceiptWindowEnd, 'HH24:MI')", ftime )
+		"AND TO_TIMESTAMP(ReceiptWindowEnd, 'HH24:MI')", ftime)
 	return getByQuery(&us, query)
 }
 

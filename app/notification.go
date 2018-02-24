@@ -26,11 +26,6 @@ import (
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
 	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-	var fchan store.StoreChannel
-
-	if len(post.FileIds) != 0 {
-		fchan = a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
-	}
 
 	var profileMap map[string]*model.User
 	if result := <-pchan; result.Err != nil {
@@ -269,54 +264,70 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 	}
 
+	messageProps := model.StringMap{
+		"channel_type":         channel.Type,
+		"channel_display_name": channelName,
+		"channel_name":         channel.Name,
+		"sender_name":          senderUsername,
+		"team_id":              team.Id,
+	}
+
+	if len(mentionedUsersList) != 0 {
+		messageProps["mentions"] = model.ArrayToJson(mentionedUsersList)
+	}
+
 	for uid, u := range profileMap {
-		if u.IsAvailable() {
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, uid, nil)
-			message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
-			message.Add("channel_type", channel.Type)
-			message.Add("channel_display_name", channelName)
-			message.Add("channel_name", channel.Name)
-			message.Add("sender_name", senderUsername)
-			message.Add("team_id", team.Id)
-
-			if len(post.FileIds) != 0 && fchan != nil {
-				message.Add("otherFile", "true")
-
-				var infos []*model.FileInfo
-				if result := <-fchan; result.Err != nil {
-					l4g.Warn(utils.T("api.post.send_notifications.files.error"), post.Id, result.Err)
-				} else {
-					infos = result.Data.([]*model.FileInfo)
-				}
-
-				for _, info := range infos {
-					if info.IsImage() {
-						message.Add("image", "true")
-						break
-					}
-				}
+		if !post.IsSystemMessage() && post.UserId != uid && !u.IsAvailable() {
+			pendingPost := &model.PendingPost{
+				UserId:    uid,
+				ChannelId: channel.Id,
+				PostId:    post.Id,
+				Props:     messageProps,
 			}
-
-			if len(mentionedUsersList) != 0 {
-				message.Add("mentions", model.ArrayToJson(mentionedUsersList))
+			if result := <-a.Srv.Store.PendingPost().Save(pendingPost); result.Err != nil {
+				l4g.Error(utils.T("api.pending_post.create.error"), pendingPost.Id, result.Err)
 			}
-
-			a.Publish(message)
 		} else {
-			if !post.IsSystemMessage() && post.UserId != uid {
-				pendingPost := &model.PendingPost{
-					UserId: uid,
-					ChannelId: channel.Id,
-					PostId: post.Id,
-				}
-				if result := <- a.Srv.Store.PendingPost().Save(pendingPost); result.Err != nil {
-					l4g.Warn(utils.T("api.pending_post.create.error"), pendingPost.Id, result.Err)
-				}
-			}
+			a.SendPostNotification(post, uid, messageProps)
 		}
 	}
 
 	return mentionedUsersList, nil
+}
+
+func (a *App) SendPostNotification(post *model.Post, receiverId string, properties model.StringMap) {
+	var fchan store.StoreChannel
+
+	if len(post.FileIds) != 0 {
+		fchan = a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, receiverId, nil)
+	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
+
+	for property, value := range properties {
+		message.Add(property, value)
+	}
+
+	if len(post.FileIds) != 0 && fchan != nil {
+		message.Add("otherFile", "true")
+
+		var infos []*model.FileInfo
+		if result := <-fchan; result.Err != nil {
+			l4g.Warn(utils.T("api.post.send_notifications.files.error"), post.Id, result.Err)
+		} else {
+			infos = result.Data.([]*model.FileInfo)
+		}
+
+		for _, info := range infos {
+			if info.IsImage() {
+				message.Add("image", "true")
+				break
+			}
+		}
+	}
+
+	a.Publish(message)
 }
 
 func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
