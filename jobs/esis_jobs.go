@@ -46,7 +46,7 @@ func (s *EsisJobsServer) Start() {
 				case <-s.stop:
 					l4g.Debug("ESIS Message Delivery received stop signal.")
 					return
-				case now = <-time.After(1 * time.Minute):
+				case now = <-time.After(60 * time.Minute):
 					result := <-s.Store.User().GetEsisApiAvailable(now)
 					users := result.Data.([]*model.User)
 

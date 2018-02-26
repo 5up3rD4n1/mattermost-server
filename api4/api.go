@@ -105,15 +105,22 @@ type Routes struct {
 	Webrtc *mux.Router // 'api/v4/webrtc'
 }
 
+type EsisRoutes struct {
+	ApiRoot 	*mux.Router // 'api/v4'
+	Contacts  	*mux.Router // 'api/v4/esis/contacts
+}
+
 type API struct {
 	App        *app.App
 	BaseRoutes *Routes
+	EsisRoutes *EsisRoutes
 }
 
 func Init(a *app.App, root *mux.Router, full bool) *API {
 	api := &API{
 		App:        a,
 		BaseRoutes: &Routes{},
+		EsisRoutes: &EsisRoutes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -194,6 +201,11 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
+	// Esis Routes
+
+	api.EsisRoutes.ApiRoot = api.BaseRoutes.ApiRoot.PathPrefix(model.API_URL_ESIS).Subrouter()
+	api.EsisRoutes.Contacts = api.EsisRoutes.ApiRoot.PathPrefix("/contacts").Subrouter()
+
 	api.InitUser()
 	api.InitTeam()
 	api.InitChannel()
@@ -219,6 +231,10 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitWebrtc()
 	api.InitOpenGraph()
 	api.InitPlugin()
+
+	// Init Esis routes
+
+	api.InitEsisContacts()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

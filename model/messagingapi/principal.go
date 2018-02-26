@@ -9,8 +9,8 @@ type Principal struct {
 	Id            int64  `json:"id"`
 	Handle        string `json:"handle"`
 	PrincipalType string `json:"type"`
-	AsUser        *User
-	AsGroup       *Group
+	AsUser        *User	 `json:"asUser"`
+	AsUserGroup	  *Group `json:"asUserGroup"`
 }
 
 type Group struct {
@@ -19,12 +19,19 @@ type Group struct {
 	ApiUsers  *[]User
 }
 
+type TimeWindow struct {
+	Hour 	int64 `json:"hour"`
+	Minute 	int64 `json:"minute"`
+	Second 	int64 `json:"second"`
+	Nano 	int64 `json:"nano"`
+}
+
 type User struct {
-	Id		  			int64 	`json:"id"`
-	UserName  			string 	`json:"userName"`
-	Password  			string	`json:"password"`
-	FullName  			string	`json:"fullName"`
-	Principal 			int64 	`json:"principal"`
-	ReceiptWindowStart 	string 	`json:"receiptWindowStart"`
-	ReceiptWindowEnd 	string 	`json:"receiptWindowEnd"`
+	Id		  			int64 		`json:"id"`
+	Username  			string 		`json:"username"`
+	Password  			string		`json:"password"`
+	FullName  			string		`json:"fullName"`
+	Principal 			int64 		`json:"principal"`
+	ReceiptWindowStart 	*TimeWindow `json:"receiptWindowStart"`
+	ReceiptWindowEnd 	*TimeWindow `json:"receiptWindowEnd"`
 }

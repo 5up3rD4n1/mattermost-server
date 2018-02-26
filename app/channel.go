@@ -150,12 +150,12 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 		return nil, err
 	}
 
-	var user *model.User
-	if user, err = a.GetUser(userId); err != nil {
-		return nil, err
-	}
+	//var user *model.User
+	//if user, err = a.GetUser(userId); err != nil {
+	//	return nil, err
+	//}
 
-	a.postJoinChannelMessage(user, channel)
+	// a.postJoinChannelMessage(user, channel)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CREATED, "", "", userId, nil)
 	message.Add("channel_id", channel.Id)

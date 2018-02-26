@@ -3,6 +3,7 @@ package messagingapi
 import (
 	"io"
 	"encoding/json"
+	l4g "github.com/alecthomas/log4go"
 )
 
 const (
@@ -13,20 +14,30 @@ const (
 
 type Contact struct {
 	Id					int64			`json:"id"`
-	// Sender 				*ApiPrincipal 	`json:"sender,omitempty"` Omit field due to API ERROR
-	Receiver 			*Principal 	`json:"receiver"`
+	Sender 				*Principal 		`json:"sender"`
+	Receiver 			*Principal 		`json:"receiver"`
 	ContactType			string			`json:"type"`
-	ReceiptWindowStart	string			`json:"receiptWindowStart"`
-	ReceiptWindowEnd	string			`json:"receiptWindowEnd"`
 }
 
 func ContactFromJson(data io.Reader) *Contact {
 	decoder := json.NewDecoder(data)
-	var o Contact
-	err := decoder.Decode(&o)
+	var contact Contact
+	err := decoder.Decode(&contact)
 	if err == nil {
-		return &o
+		return &contact
 	} else {
+		l4g.Error(err.Error())
 		return nil
+	}
+}
+
+
+
+func (c *Contact) ToJson() string {
+	b, err := json.Marshal(c)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
 	}
 }

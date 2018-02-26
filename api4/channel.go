@@ -62,7 +62,8 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sc, err := c.App.CreateChannelWithUser(channel, c.Session.UserId); err != nil {
+	channel.CreatorId = c.Session.UserId
+	if sc, err := c.App.CreateChannel(channel, false); err != nil {
 		c.Err = err
 		return
 	} else {
