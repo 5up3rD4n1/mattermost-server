@@ -155,7 +155,7 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("password_limit", u.Id)
 	}
 
-	if u.MessagingApiId <= 0 {
+	if u.MessagingApiId < 0 {
 		return InvalidUserError("not_messaging_api_id", u.Id)
 	}
 

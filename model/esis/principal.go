@@ -1,4 +1,6 @@
-package messagingapi
+package esis
+
+import "fmt"
 
 const (
 	USER  = "USR"
@@ -34,4 +36,12 @@ type User struct {
 	Principal 			int64 		`json:"principal"`
 	ReceiptWindowStart 	*TimeWindow `json:"receiptWindowStart"`
 	ReceiptWindowEnd 	*TimeWindow `json:"receiptWindowEnd"`
+}
+
+func (t *TimeWindow) String() string {
+	if t == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%v:%v:%v:%v",t.Hour, t.Minute, t.Second, t.Nano)
 }

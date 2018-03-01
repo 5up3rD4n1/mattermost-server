@@ -1,4 +1,4 @@
-package messagingapi
+package esis
 
 import (
 	"io"
@@ -7,16 +7,15 @@ import (
 )
 
 const (
-	DIRECT 		= "direct"
-	BROADCAST 	= "broadcast"
+	CONTACT_DIRECT 		= "DIRECT"
+	CONTACT_BROADCAST 	= "BROADCAST"
 )
-
 
 type Contact struct {
 	Id					int64			`json:"id"`
 	Sender 				*Principal 		`json:"sender"`
 	Receiver 			*Principal 		`json:"receiver"`
-	ContactType			string			`json:"type"`
+	Type				string			`json:"type"`
 }
 
 func ContactFromJson(data io.Reader) *Contact {
@@ -30,8 +29,6 @@ func ContactFromJson(data io.Reader) *Contact {
 		return nil
 	}
 }
-
-
 
 func (c *Contact) ToJson() string {
 	b, err := json.Marshal(c)

@@ -277,7 +277,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	for uid, u := range profileMap {
-		if !post.IsSystemMessage() && post.UserId != uid && !u.IsAvailable() {
+		if !post.IsSystemMessage() && post.UserId != uid && !u.IsAvailable() && channel.Type == model.CHANNEL_DIRECT {
 			pendingPost := &model.PendingPost{
 				UserId:    uid,
 				ChannelId: channel.Id,

@@ -22,7 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/messagingapi"
+	"github.com/mattermost/mattermost-server/store/esis"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -156,7 +156,7 @@ func New(options ...Option) (*App, error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	app.Srv.ApiStore = messagingapi.NewApiStore(&app.Config().MessagingApiSettings, app.HTTPClient(true))
+	app.Srv.ApiStore = esis.NewApiStore(&app.Config().MessagingApiSettings, app.HTTPClient(true))
 
 	return app, nil
 }

@@ -1,4 +1,4 @@
-package messagingapi
+package esis
 
 import (
 	"github.com/mattermost/mattermost-server/store"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"encoding/base64"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/model/messagingapi"
+	"github.com/mattermost/mattermost-server/model/esis"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -80,7 +80,7 @@ func (ps *PrincipalStoreImpl) GetByHandle(userEmail *string) store.StoreChannel 
 			return
 		}
 
-		var principal messagingapi.Principal
+		var principal esis.Principal
 
 		if dError := json.NewDecoder(response.Body).Decode(&principal); dError != nil {
 			result.Err = model.NewAppError("MessagingApiRequest", "messaging.api.parse_error", nil, dError.Error(), http.StatusBadRequest)

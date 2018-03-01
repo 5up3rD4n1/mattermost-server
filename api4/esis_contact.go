@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/model/messagingapi"
+	"github.com/mattermost/mattermost-server/model/esis"
 	l4g "github.com/alecthomas/log4go"
 )
 
@@ -13,17 +13,23 @@ func (api *API) InitEsisContacts() {
 }
 
 func syncContact(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_ADD_USER_TO_TEAM) {
-		c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
+
+	app := c.App
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	contact := messagingapi.ContactFromJson(r.Body)
+	contact := esis.ContactFromJson(r.Body)
 
-	l4g.Debug(contact)
+	if err := app.SyncEsisContact(contact, c.Session.UserId); err != nil {
+		c.Err = err
+		l4g.Error("Error trying to import esis contact", err)
+		return
+	}
 
-	// TODO: Process contact to create users, teams and channels
-	// w.Write([]byte(contact.ToJson()))
+	l4g.Debug("ESIS Contact imported: Id = ", contact.Id)
 
 	w.WriteHeader(http.StatusCreated)
 	ReturnStatusOK(w)
