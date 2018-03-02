@@ -40,7 +40,7 @@ type ApiClient struct {
 	Store 		*ApiStore
 }
 
-func NewApiStore(config *model.MessagingApiSettings, client *http.Client) Store {
+func NewApiStore(config *model.EsisSettings, client *http.Client) Store {
 	user := *config.Username
 	password := *config.Password
 	token := base64.StdEncoding.EncodeToString([]byte(user + ":" + password))

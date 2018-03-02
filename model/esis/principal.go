@@ -3,14 +3,14 @@ package esis
 import "fmt"
 
 const (
-	USER  = "USR"
-	GROUP = "GRP"
+	PRINCIPAL_USER  = "USR"
+	PRINCIPAL_GROUP = "GRP"
 )
 
 type Principal struct {
 	Id            int64  `json:"id"`
 	Handle        string `json:"handle"`
-	PrincipalType string `json:"type"`
+	Type 		  string `json:"type"`
 	AsUser        *User	 `json:"asUser"`
 	AsUserGroup	  *Group `json:"asUserGroup"`
 }
@@ -18,7 +18,7 @@ type Principal struct {
 type Group struct {
 	Name      string
 	Principal *Principal
-	ApiUsers  *[]User
+	Users  []*User
 }
 
 type TimeWindow struct {

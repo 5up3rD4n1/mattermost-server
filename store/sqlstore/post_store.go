@@ -433,7 +433,6 @@ func (s SqlPostStore) PermanentDeleteByChannel(channelId string) store.StoreChan
 }
 
 func (s SqlPostStore) GetPosts(channelId string, userId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
-	l4g.Debug("User id for get posts: " + userId)
 	return store.Do(func(result *store.StoreResult) {
 		if limit > 1000 {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
@@ -659,7 +658,6 @@ func (s SqlPostStore) getPostsAround(channelId string, postId string, numPosts i
 }
 
 func (s SqlPostStore) getRootPosts(channelId string, userId string, offset int, limit int) store.StoreChannel {
-	l4g.Debug("User id to get posts: " + userId)
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, "" +

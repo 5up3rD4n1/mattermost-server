@@ -144,7 +144,7 @@ func New(options ...Option) (*App, error) {
 	app.Srv.Store = app.newStore()
 	app.initJobs()
 
-	app.EsisJobs = jobs.NewEsisJobsServer(app, app.Srv.Store)
+	app.EsisJobs = jobs.NewEsisJobsServer(app, app, app.Srv.Store)
 	app.initBuiltInPlugins()
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
@@ -156,7 +156,7 @@ func New(options ...Option) (*App, error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	app.Srv.ApiStore = esis.NewApiStore(&app.Config().MessagingApiSettings, app.HTTPClient(true))
+	app.Srv.ApiStore = esis.NewApiStore(&app.Config().EsisSettings, app.HTTPClient(true))
 
 	return app, nil
 }

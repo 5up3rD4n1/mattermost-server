@@ -362,7 +362,9 @@ func initializeDefaultRoles() {
 		"guest",
 		"authentication.roles.global_guest.name",
 		"authentication.roles.global_guest.description",
-		[]string{},
+		[]string{
+			PERMISSION_READ_CHANNEL.Id,
+		},
 	}
 
 	DefaultRoles[TEAM_USER_ROLE_ID] = &Role{
