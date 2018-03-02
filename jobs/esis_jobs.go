@@ -6,11 +6,13 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/model"
-
 )
 
 type AppService interface {
 	SendPostNotification(post *model.Post, receiverId string, properties model.StringMap)
+	Config() *model.Config
+	AddConfigListener(func(old, current *model.Config)) string
+	RemoveConfigListener(string)
 }
 
 type EsisJobsServer struct {
@@ -20,27 +22,25 @@ type EsisJobsServer struct {
 	listenerId    string
 	startOnce     sync.Once
 	Store         store.Store
-	ConfigService ConfigService
-	NotifyService AppService
+	AppService    AppService
 }
 
-func NewEsisJobsServer(app AppService, configService ConfigService, store store.Store) *EsisJobsServer {
+func NewEsisJobsServer(app AppService, store store.Store) *EsisJobsServer {
 	return &EsisJobsServer{
-		stop:    make(chan bool),
-		stopped: make(chan bool),
-		Store:   store,
-		NotifyService: app,
-		ConfigService: configService,
+		stop:       make(chan bool),
+		stopped:    make(chan bool),
+		Store:      store,
+		AppService: app,
 	}
 }
 
 func (s *EsisJobsServer) Start() {
 
-	esisConfig := s.ConfigService.Config().EsisSettings
+	esisConfig := s.AppService.Config().EsisSettings
 
 	if *esisConfig.Enable {
 
-		s.listenerId = s.ConfigService.AddConfigListener(s.handleConfigChange)
+		s.listenerId = s.AppService.AddConfigListener(s.handleConfigChange)
 
 		l4g.Info("Initializing ESIS Message Delivery Task.")
 
@@ -59,6 +59,7 @@ func (s *EsisJobsServer) Start() {
 					select {
 					case <-s.stop:
 						l4g.Debug("ESIS Message Delivery received stop signal.")
+						s.AppService.RemoveConfigListener(s.listenerId)
 						return
 					case newCfg := <-s.configChanged:
 						esisConfig = newCfg.EsisSettings
@@ -67,7 +68,6 @@ func (s *EsisJobsServer) Start() {
 						result := <-s.Store.User().GetEsisApiAvailable(now)
 						users := result.Data.([]*model.User)
 
-						// for user := users
 						l4g.Info("Running Esis messages task", now.UTC(), users)
 						for _, user := range users {
 							s.processPostsForUser(user.Id)
@@ -98,14 +98,13 @@ func (s *EsisJobsServer) processPostsForUser(uid string) {
 	}
 }
 
-
 func (s *EsisJobsServer) notifyPendingPostToUser(pendingPost *model.PendingPost) {
 	result := <- s.Store.Post().GetSingle(pendingPost.PostId)
 	if result.Err != nil {
 		l4g.Warn("Error getting post from pending post postId", result.Err.Error())
 	} else {
 		post := result.Data.(*model.Post)
-		s.NotifyService.SendPostNotification(post, pendingPost.UserId, pendingPost.Props)
+		s.AppService.SendPostNotification(post, pendingPost.UserId, pendingPost.Props)
 		s.Store.PendingPost().Delete(pendingPost)
 	}
 }
