@@ -45,7 +45,7 @@ const (
 	API_URL_SUFFIX_V3 = "/api/v3"
 	API_URL_SUFFIX_V4 = "/api/v4"
 	API_URL_SUFFIX    = API_URL_SUFFIX_V4
-	API_URL_ESIS	  = "/esis"
+	API_URL_CAMINO	  = "/camino"
 )
 
 type Result struct {

@@ -156,8 +156,8 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 		a.Jobs.StartSchedulers()
 	}
 
-	// Start ESIS Messages delivery jobs
-	a.EsisJobs.Start()
+	// Start CAMINO Messages delivery jobs
+	a.CaminoJobs.Start()
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
@@ -173,7 +173,7 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 		a.Metrics.StopServer()
 	}
 
-	a.EsisJobs.Stop()
+	a.CaminoJobs.Stop()
 
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()

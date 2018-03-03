@@ -374,7 +374,7 @@
             }
         }
     },
-    "EsisSettings": {
+    "CaminoSettings": {
         "Enable": true,
         "MessageDeliveryTimeWindowMinutes": 2,
         "ConnectionUrl": "http://localhost:8080",

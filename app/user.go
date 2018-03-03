@@ -199,9 +199,9 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 /*	if principal, err := a.ValidatePrincipal(user); err != nil {
 		return nil, err
 	} else {
-		esisUser := principal.AsUser
-		user.ReceiptWindowStart = esisUser.ReceiptWindowStart
-		user.ReceiptWindowEnd = esisUser.ReceiptWindowEnd
+		caminoUser := principal.AsUser
+		user.ReceiptWindowStart = caminoUser.ReceiptWindowStart
+		user.ReceiptWindowEnd = caminoUser.ReceiptWindowEnd
 		user.MessagingApiId = principal.Id
 	}*/
 

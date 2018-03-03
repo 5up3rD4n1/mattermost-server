@@ -1572,7 +1572,7 @@ type PluginSettings struct {
 	PluginStates    map[string]*PluginState
 }
 
-type EsisSettings struct {
+type CaminoSettings struct {
 	Enable								*bool
 	MessageDeliveryTimeWindowMinutes 	*int64
 	ConnectionUrl						string
@@ -1680,7 +1680,7 @@ type Config struct {
 	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
-	EsisSettings          EsisSettings
+	CaminoSettings          CaminoSettings
 }
 
 func (o *Config) Clone() *Config {

@@ -15,7 +15,7 @@ type AppService interface {
 	RemoveConfigListener(string)
 }
 
-type EsisJobsServer struct {
+type CaminoJobsServer struct {
 	stop          chan bool
 	stopped       chan bool
 	configChanged chan *model.Config
@@ -25,8 +25,8 @@ type EsisJobsServer struct {
 	AppService    AppService
 }
 
-func NewEsisJobsServer(app AppService, store store.Store) *EsisJobsServer {
-	return &EsisJobsServer{
+func NewCaminoJobsServer(app AppService, store store.Store) *CaminoJobsServer {
+	return &CaminoJobsServer{
 		stop:       make(chan bool),
 		stopped:    make(chan bool),
 		Store:      store,
@@ -34,41 +34,41 @@ func NewEsisJobsServer(app AppService, store store.Store) *EsisJobsServer {
 	}
 }
 
-func (s *EsisJobsServer) Start() {
+func (s *CaminoJobsServer) Start() {
 
-	esisConfig := s.AppService.Config().EsisSettings
+	caminoConfig := s.AppService.Config().CaminoSettings
 
-	if *esisConfig.Enable {
+	if *caminoConfig.Enable {
 
 		s.listenerId = s.AppService.AddConfigListener(s.handleConfigChange)
 
-		l4g.Info("Initializing ESIS Message Delivery Task.")
+		l4g.Info("Initializing CAMINO Message Delivery Task.")
 
-		cfgTimeWindowMinutes := *esisConfig.MessageDeliveryTimeWindowMinutes
+		cfgTimeWindowMinutes := *caminoConfig.MessageDeliveryTimeWindowMinutes
 
 		go func() {
 			s.startOnce.Do(func() {
-				l4g.Info("Starting ESIS Message Delivery Task.")
+				l4g.Info("Starting CAMINO Message Delivery Task.")
 
 				defer func() {
-					l4g.Info("ESIS Message Delivery Task Stopped")
+					l4g.Info("CAMINO Message Delivery Task Stopped")
 					close(s.stopped)
 				}()
 				now := time.Now()
 				for {
 					select {
 					case <-s.stop:
-						l4g.Debug("ESIS Message Delivery received stop signal.")
+						l4g.Debug("CAMINO Message Delivery received stop signal.")
 						s.AppService.RemoveConfigListener(s.listenerId)
 						return
 					case newCfg := <-s.configChanged:
-						esisConfig = newCfg.EsisSettings
-						cfgTimeWindowMinutes = *esisConfig.MessageDeliveryTimeWindowMinutes
+						caminoConfig = newCfg.CaminoSettings
+						cfgTimeWindowMinutes = *caminoConfig.MessageDeliveryTimeWindowMinutes
 					case now = <-time.After(time.Duration(cfgTimeWindowMinutes) * time.Minute):
-						result := <-s.Store.User().GetEsisApiAvailable(now)
+						result := <-s.Store.User().GetCaminoApiAvailable(now)
 						users := result.Data.([]*model.User)
 
-						l4g.Info("Running Esis messages task", now.UTC(), users)
+						l4g.Info("Running Camino messages task", now.UTC(), users)
 						for _, user := range users {
 							s.processPostsForUser(user.Id)
 							// l4g.Debug(user)
@@ -80,12 +80,12 @@ func (s *EsisJobsServer) Start() {
 	}
 }
 
-func (s *EsisJobsServer) Stop() {
+func (s *CaminoJobsServer) Stop() {
 	close(s.stop)
 	<-s.stopped
 }
 
-func (s *EsisJobsServer) processPostsForUser(uid string) {
+func (s *CaminoJobsServer) processPostsForUser(uid string) {
 	pPostsResult := <- s.Store.PendingPost().PendingPostsForUser(uid)
 
 	if pPostsResult.Err != nil {
@@ -98,7 +98,7 @@ func (s *EsisJobsServer) processPostsForUser(uid string) {
 	}
 }
 
-func (s *EsisJobsServer) notifyPendingPostToUser(pendingPost *model.PendingPost) {
+func (s *CaminoJobsServer) notifyPendingPostToUser(pendingPost *model.PendingPost) {
 	result := <- s.Store.Post().GetSingle(pendingPost.PostId)
 	if result.Err != nil {
 		l4g.Warn("Error getting post from pending post postId", result.Err.Error())
@@ -109,7 +109,7 @@ func (s *EsisJobsServer) notifyPendingPostToUser(pendingPost *model.PendingPost)
 	}
 }
 
-func (s *EsisJobsServer) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
-	l4g.Debug("ESIS Message Delivery received config change.")
+func (s *CaminoJobsServer) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+	l4g.Debug("CAMINO Message Delivery received config change.")
 	s.configChanged <- newConfig
 }

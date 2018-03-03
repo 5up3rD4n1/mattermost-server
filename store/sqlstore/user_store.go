@@ -92,9 +92,9 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
 		us.CreateIndexIfNotExists("idx_users_firstname_lower", "Users", "lower(FirstName)")
 		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
-		us.CreateIndexIfNotExists("idx_users_esis_api_id", "Users", "MessagingApiId")
-		us.CreateIndexIfNotExists("idx_users_esis_window_start_lower", "Users", "lower(ReceiptWindowStart)")
-		us.CreateIndexIfNotExists("idx_users_esis_window_end_lower", "Users", "lower(ReceiptWindowEnd)")
+		us.CreateIndexIfNotExists("idx_users_camino_api_id", "Users", "MessagingApiId")
+		us.CreateIndexIfNotExists("idx_users_camino_window_start_lower", "Users", "lower(ReceiptWindowStart)")
+		us.CreateIndexIfNotExists("idx_users_camino_window_end_lower", "Users", "lower(ReceiptWindowEnd)")
 	}
 
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
@@ -321,7 +321,7 @@ func (us SqlUserStore) GetAll() store.StoreChannel {
 	return getByQuery(&us,"SELECT * FROM Users")
 }
 
-func (us SqlUserStore) GetEsisApiAvailable(now time.Time) store.StoreChannel {
+func (us SqlUserStore) GetCaminoApiAvailable(now time.Time) store.StoreChannel {
 	ftime := now.UTC().Format("15:04")
 	query := fmt.Sprintf("SELECT * FROM Users " +
 		"WHERE TO_TIMESTAMP('%s', 'HH24:MI') " +

@@ -55,7 +55,7 @@ func PendingPostFromJson(data io.Reader) *PendingPost {
 
 func (o *PendingPost) IsValid() *AppError {
 	if o.UserId == "" && o.PostId == "" && o.ChannelId == "" {
-		return NewAppError("PendingStore.IsValid", "esis.pending_post.missing_data", nil, "", http.StatusBadRequest)
+		return NewAppError("PendingStore.IsValid", "camino.pending_post.missing_data", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

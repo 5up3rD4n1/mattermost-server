@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/model/esis"
+	"github.com/mattermost/mattermost-server/model/camino"
 	l4g "github.com/alecthomas/log4go"
 )
 
-func (api *API) InitEsisContacts() {
-	api.EsisRoutes.Contacts.Handle("", api.ApiSessionRequired(syncContact)).Methods("POST")
+func (api *API) InitCaminoContacts() {
+	api.CaminoRoutes.Contacts.Handle("", api.ApiSessionRequired(syncContact)).Methods("POST")
 }
 
 func syncContact(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -21,15 +21,15 @@ func syncContact(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contact := esis.ContactFromJson(r.Body)
+	contact := camino.ContactFromJson(r.Body)
 
-	if err := app.SyncEsisContact(contact, c.Session.UserId); err != nil {
+	if err := app.SyncCaminoContact(contact, c.Session.UserId); err != nil {
 		c.Err = err
-		l4g.Error("Error trying to import esis contact", err)
+		l4g.Error("Error trying to import camino contact", err)
 		return
 	}
 
-	l4g.Debug("ESIS Contact imported: Id = ", contact.Id)
+	l4g.Debug("CAMINO Contact imported: Id = ", contact.Id)
 
 	w.WriteHeader(http.StatusCreated)
 	ReturnStatusOK(w)

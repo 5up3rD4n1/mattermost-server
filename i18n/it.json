@@ -6760,15 +6760,15 @@
   },
   {
     "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Esiste già un account con questo nome utente."
+    "translation": "Caminote già un account con questo nome utente."
   },
   {
     "id": "store.sql_user.save.username_exists.ldap_app_error",
-    "translation": "Esiste già un account con questo nome utente. Per favore contatta il tuo Amministratore."
+    "translation": "Caminote già un account con questo nome utente. Per favore contatta il tuo Amministratore."
   },
   {
     "id": "store.sql_user.save.username_exists.saml_app_error",
-    "translation": "Esiste già un account con quel nome utente. Per favore contatta il tuo Amministratore."
+    "translation": "Caminote già un account con quel nome utente. Per favore contatta il tuo Amministratore."
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6804,7 +6804,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Impossibile cambiare account a {{.Service}}. Esiste già un account che utilizza l'indirizzo email {{.Email}}."
+    "translation": "Impossibile cambiare account a {{.Service}}. Caminote già un account che utilizza l'indirizzo email {{.Email}}."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",

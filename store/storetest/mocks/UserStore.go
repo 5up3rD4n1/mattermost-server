@@ -114,7 +114,7 @@ func (_m *UserStore) GetAll() store.StoreChannel {
 
 
 // GetAll provides a mock function with given fields:
-func (_m *UserStore) GetEsisApiAvailable(now time.Time) store.StoreChannel {
+func (_m *UserStore) GetCaminoApiAvailable(now time.Time) store.StoreChannel {
 	ret := _m.Called()
 
 	var r0 store.StoreChannel

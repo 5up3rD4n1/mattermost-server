@@ -7,24 +7,24 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/model/esis"
+	"github.com/mattermost/mattermost-server/model/camino"
 	"github.com/alecthomas/log4go"
 )
 
-func (app *App) SyncEsisContact(contact *esis.Contact, userRequestorId string) *model.AppError {
+func (app *App) SyncCaminoContact(contact *camino.Contact, userRequestorId string) *model.AppError {
 
-	if contact.Type == esis.CONTACT_DIRECT {
+	if contact.Type == camino.CONTACT_DIRECT {
 		return app.createDirectChannelFromContact(contact, userRequestorId)
-	} else if contact.Type == esis.CONTACT_BROADCAST {
+	} else if contact.Type == camino.CONTACT_BROADCAST {
 		return app.createGroupChannelFromContact(contact, userRequestorId)
 	}
 
 	detail := fmt.Sprintf("Principal id = %v", contact.Id)
-	return model.NewAppError("App.EsisImport.SyncEsisContact", "app.esis_import.invalid_contact_type", nil, detail, http.StatusBadRequest)
+	return model.NewAppError("App.CaminoImport.SyncCaminoContact", "app.camino_import.invalid_contact_type", nil, detail, http.StatusBadRequest)
 
 }
 
-func (app *App) createDirectChannelFromContact(contact *esis.Contact, userRequestorId string) *model.AppError {
+func (app *App) createDirectChannelFromContact(contact *camino.Contact, userRequestorId string) *model.AppError {
 	// create the users
 	sender, sErr := app.createUserIfNotExists(contact.Sender.AsUser)
 	receiver, rErr := app.createUserIfNotExists(contact.Receiver.AsUser)
@@ -41,7 +41,7 @@ func (app *App) createDirectChannelFromContact(contact *esis.Contact, userReques
 	if tErr != nil { return tErr }
 
 	users := []*model.User{sender, receiver}
-	joinErr := app.joinEsisUsersToTeam(users, team, userRequestorId)
+	joinErr := app.joinCaminoUsersToTeam(users, team, userRequestorId)
 
 	if joinErr != nil { return joinErr }
 
@@ -54,14 +54,14 @@ func (app *App) createDirectChannelFromContact(contact *esis.Contact, userReques
 	return nil
 }
 
-func (app *App) createGroupChannelFromContact(contact *esis.Contact, userRequestorId string) *model.AppError {
+func (app *App) createGroupChannelFromContact(contact *camino.Contact, userRequestorId string) *model.AppError {
 
 
-	esisSender 	 := contact.Sender
-	esisReceiver := contact.Receiver
+	caminoSender 	 := contact.Sender
+	caminoReceiver := contact.Receiver
 
-	if esisSender.Type == esis.PRINCIPAL_USER && esisReceiver.Type == esis.PRINCIPAL_GROUP {
-		sender, sErr := app.createUserIfNotExists(esisSender.AsUser)
+	if caminoSender.Type == camino.PRINCIPAL_USER && caminoReceiver.Type == camino.PRINCIPAL_GROUP {
+		sender, sErr := app.createUserIfNotExists(caminoSender.AsUser)
 
 		if sErr != nil { return sErr }
 
@@ -69,16 +69,16 @@ func (app *App) createGroupChannelFromContact(contact *esis.Contact, userRequest
 
 		if tErr != nil { return tErr }
 
-		users, uErr := app.createUsersFromGroup(esisReceiver.AsUserGroup)
+		users, uErr := app.createUsersFromGroup(caminoReceiver.AsUserGroup)
 
 		if uErr != nil { return uErr }
 
-		jErr := app.joinEsisUsersToTeam(append(users, sender), team, userRequestorId)
+		jErr := app.joinCaminoUsersToTeam(append(users, sender), team, userRequestorId)
 
 		if jErr != nil { return jErr }
 
-		log4go.Info(esisReceiver.AsUserGroup)
-		groupName := esisReceiver.AsUserGroup.Name
+		log4go.Info(caminoReceiver.AsUserGroup)
+		groupName := caminoReceiver.AsUserGroup.Name
 		channel, cErr := app.CreatePrivateChannel(groupName, team.Id, sender.Id)
 
 		if cErr != nil { return cErr }
@@ -89,7 +89,7 @@ func (app *App) createGroupChannelFromContact(contact *esis.Contact, userRequest
 	return nil
 }
 
-func (app *App) createUsersFromGroup(group *esis.Group) ([]*model.User, *model.AppError) {
+func (app *App) createUsersFromGroup(group *camino.Group) ([]*model.User, *model.AppError) {
 	var users []*model.User
 
 	for _, usr := range group.Users {
@@ -103,16 +103,16 @@ func (app *App) createUsersFromGroup(group *esis.Group) ([]*model.User, *model.A
 	return users, nil
 }
 
-func (app *App) createUserIfNotExists(esisUser *esis.User) (*model.User, *model.AppError) {
-	log4go.Info(esisUser)
-	if usr, err := app.GetUserByEmail(esisUser.Username); err != nil {
+func (app *App) createUserIfNotExists(caminoUser *camino.User) (*model.User, *model.AppError) {
+	log4go.Info(caminoUser)
+	if usr, err := app.GetUserByEmail(caminoUser.Username); err != nil {
 		newUser := &model.User{
-			Email:          	esisUser.Username,
-			Username:       	esisUser.Username,
-			Password:       	esisUser.Password,
-			MessagingApiId: 	esisUser.Id,
-			ReceiptWindowEnd: 	esisUser.ReceiptWindowEnd.String(),
-			ReceiptWindowStart: esisUser.ReceiptWindowStart.String(),
+			Email:          	caminoUser.Username,
+			Username:       	caminoUser.Username,
+			Password:       	caminoUser.Password,
+			MessagingApiId: 	caminoUser.Id,
+			ReceiptWindowEnd: 	caminoUser.ReceiptWindowEnd.String(),
+			ReceiptWindowStart: caminoUser.ReceiptWindowStart.String(),
 		}
 		return app.CreateUser(newUser)
 	} else {
@@ -139,7 +139,7 @@ func (app *App) createTeamFromUser(user *model.User) (*model.Team, *model.AppErr
 	return team, nil
 }
 
-func (app *App) joinEsisUsersToTeam(users []*model.User, team *model.Team, userRequestorId string) *model.AppError {
+func (app *App) joinCaminoUsersToTeam(users []*model.User, team *model.Team, userRequestorId string) *model.AppError {
 	var err *model.AppError
 	for _, usr := range users {
 		sErr := app.JoinUserToTeam(team, usr, userRequestorId)
@@ -201,7 +201,7 @@ func validateUsersDomain(sender *model.User, receiver *model.User) *model.AppErr
 	receiverDomain := strings.Split(receiver.Email, "@")[1]
 
 	if senderDomain != receiverDomain {
-		return model.NewAppError("App.EsisImport.validateUsersDomain", "app.esis_import.cross_domain.not_allowed", nil, "", http.StatusBadRequest)
+		return model.NewAppError("App.CaminoImport.validateUsersDomain", "app.camino_import.cross_domain.not_allowed", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

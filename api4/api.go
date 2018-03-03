@@ -108,7 +108,7 @@ type Routes struct {
 type API struct {
 	App        *app.App
 	BaseRoutes *Routes
-	EsisRoutes *EsisRoutes
+	CaminoRoutes *CaminoRoutes
 }
 
 func Init(a *app.App, root *mux.Router, full bool) *API {
@@ -195,8 +195,8 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
-	api.EsisRoutes = NewEsisRoutes(api.BaseRoutes.ApiRoot)
-	api.InitEsisContacts()
+	api.CaminoRoutes = NewCaminoRoutes(api.BaseRoutes.ApiRoot)
+	api.InitCaminoContacts()
 
 	api.InitUser()
 	api.InitTeam()

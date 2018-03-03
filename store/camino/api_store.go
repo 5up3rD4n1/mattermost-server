@@ -1,4 +1,4 @@
-package esis
+package camino
 
 import (
 	"github.com/mattermost/mattermost-server/store"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"encoding/base64"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/model/esis"
+	"github.com/mattermost/mattermost-server/model/camino"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -40,7 +40,7 @@ type ApiClient struct {
 	Store 		*ApiStore
 }
 
-func NewApiStore(config *model.EsisSettings, client *http.Client) Store {
+func NewApiStore(config *model.CaminoSettings, client *http.Client) Store {
 	user := *config.Username
 	password := *config.Password
 	token := base64.StdEncoding.EncodeToString([]byte(user + ":" + password))
@@ -80,7 +80,7 @@ func (ps *PrincipalStoreImpl) GetByHandle(userEmail *string) store.StoreChannel 
 			return
 		}
 
-		var principal esis.Principal
+		var principal camino.Principal
 
 		if dError := json.NewDecoder(response.Body).Decode(&principal); dError != nil {
 			result.Err = model.NewAppError("MessagingApiRequest", "messaging.api.parse_error", nil, dError.Error(), http.StatusBadRequest)

@@ -22,7 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/esis"
+	"github.com/mattermost/mattermost-server/store/camino"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -42,7 +42,7 @@ type App struct {
 
 	Jobs *jobs.JobServer
 
-	EsisJobs *jobs.EsisJobsServer
+	CaminoJobs *jobs.CaminoJobsServer
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Brand            einterfaces.BrandInterface
@@ -144,7 +144,7 @@ func New(options ...Option) (*App, error) {
 	app.Srv.Store = app.newStore()
 	app.initJobs()
 
-	app.EsisJobs = jobs.NewEsisJobsServer(app, app.Srv.Store)
+	app.CaminoJobs = jobs.NewCaminoJobsServer(app, app.Srv.Store)
 	app.initBuiltInPlugins()
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
@@ -156,7 +156,7 @@ func New(options ...Option) (*App, error) {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	app.Srv.ApiStore = esis.NewApiStore(&app.Config().EsisSettings, app.HTTPClient(true))
+	app.Srv.ApiStore = camino.NewApiStore(&app.Config().CaminoSettings, app.HTTPClient(true))
 
 	return app, nil
 }
