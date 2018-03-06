@@ -16,6 +16,7 @@ type Contact struct {
 	Sender 				*Principal 		`json:"sender"`
 	Receiver 			*Principal 		`json:"receiver"`
 	Type				string			`json:"type"`
+	Tenant				*Tenant			`json:"tenant"`
 }
 
 func ContactFromJson(data io.Reader) *Contact {

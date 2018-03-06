@@ -3,7 +3,6 @@ package app
 import (
 	"net/http"
 	"strings"
-	"regexp"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -32,11 +31,7 @@ func (app *App) createDirectChannelFromContact(contact *camino.Contact, userRequ
 	if sErr != nil { return sErr }
 	if rErr != nil { return rErr }
 
-	domainErr := validateUsersDomain(sender, receiver)
-
-	if domainErr != nil { return domainErr }
-
-	team, tErr := app.createTeamFromUser(sender)
+	team, tErr := app.createTeamFromTenant(contact.Tenant)
 
 	if tErr != nil { return tErr }
 
@@ -55,17 +50,15 @@ func (app *App) createDirectChannelFromContact(contact *camino.Contact, userRequ
 }
 
 func (app *App) createGroupChannelFromContact(contact *camino.Contact, userRequestorId string) *model.AppError {
-
-
-	caminoSender 	 := contact.Sender
-	caminoReceiver := contact.Receiver
+	caminoSender	:= contact.Sender
+	caminoReceiver 	:= contact.Receiver
 
 	if caminoSender.Type == camino.PRINCIPAL_USER && caminoReceiver.Type == camino.PRINCIPAL_GROUP {
 		sender, sErr := app.createUserIfNotExists(caminoSender.AsUser)
 
 		if sErr != nil { return sErr }
 
-		team, tErr := app.createTeamFromUser(sender)
+		team, tErr := app.createTeamFromTenant(contact.Tenant)
 
 		if tErr != nil { return tErr }
 
@@ -85,8 +78,16 @@ func (app *App) createGroupChannelFromContact(contact *camino.Contact, userReque
 
 		app.addUsersToBroadcastChannel(users, channel, userRequestorId)
 		app.AddUserToChannel(sender, channel)
+
+		return nil
 	}
-	return nil
+	return model.NewAppError(
+		"App.CaminoImport.createGroupChannelFromContact",
+		"app.camino_import.create_group_channel_from_contact.invalid_principal_combination",
+		nil,
+		"probably a contact type BROADCAST with principal receiver as USR",
+		http.StatusBadRequest,
+	)
 }
 
 func (app *App) createUsersFromGroup(group *camino.Group) ([]*model.User, *model.AppError) {
@@ -120,18 +121,15 @@ func (app *App) createUserIfNotExists(caminoUser *camino.User) (*model.User, *mo
 	}
 }
 
-func (app *App) createTeamFromUser(user *model.User) (*model.Team, *model.AppError) {
-	senderDomain := strings.Split(user.Email, "@")[1]
-	reg := regexp.MustCompile("[^A-Za-z0-9_-]+")
-	cleanDomain := reg.ReplaceAllString(senderDomain, "")
-
-	team, err := app.GetTeamByName(cleanDomain)
+func (app *App) createTeamFromTenant(tenant *camino.Tenant) (*model.Team, *model.AppError) {
+	teamName := strings.ToLower(tenant.Name)
+	team, err := app.GetTeamByName(teamName)
 
 	if err != nil {
 		newTeam := &model.Team{
-			Name:  			cleanDomain,
-			DisplayName:	cleanDomain,
-			Email: 			"info@" + senderDomain,
+			Name:  			teamName,
+			DisplayName:	tenant.DisplayName,
+			Email: 			tenant.Handle,
 			Type:  			model.TEAM_INVITE,
 		}
 		return app.CreateTeam(newTeam)
@@ -195,15 +193,3 @@ func (app *App) addUsersToBroadcastChannel(users []*model.User, channel *model.C
 		app.AddUserToChannel(usr, channel)
 	}
 }
-
-func validateUsersDomain(sender *model.User, receiver *model.User) *model.AppError {
-	senderDomain := strings.Split(sender.Email, "@")[1]
-	receiverDomain := strings.Split(receiver.Email, "@")[1]
-
-	if senderDomain != receiverDomain {
-		return model.NewAppError("App.CaminoImport.validateUsersDomain", "app.camino_import.cross_domain.not_allowed", nil, "", http.StatusBadRequest)
-	}
-
-	return nil
-}
-

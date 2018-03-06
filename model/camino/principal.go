@@ -38,6 +38,13 @@ type User struct {
 	ReceiptWindowEnd 	*TimeWindow `json:"receiptWindowEnd"`
 }
 
+type Tenant struct {
+	Id 			int64  `json:"id"`
+	Name 		string `json:"name"`
+	DisplayName string `json:"displayName"`
+	Handle 		string `json:"handle"`
+}
+
 func (t *TimeWindow) String() string {
 	if t == nil {
 		return ""
